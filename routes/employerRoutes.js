@@ -22,7 +22,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-
 router.get("/:id", async (req, res) => {
   try {
     const employer = await Employer.findById(req.params.id);
@@ -64,24 +63,104 @@ router.delete("/:id", async (req, res) => {
 });
 
 
+// Add Duty
 
-
-
-
-router.post('/add-duty/:id', async (req, res) => {
+router.post("/add-duty/:id", async (req, res) => {
   try {
     const employer = await Employer.findById(req.params.id);
     if (!employer) {
-      return res.status(404).json({ message: 'Employer not found' });
+      return res.status(404).json({ message: "Employer not found" });
     }
-   
+
+    const existingDuty = employer.duty.find((duty) => duty.date === req.body.date);
+
+    if (existingDuty) {
+      return res.status(400).json({ message: "Duty already exists" });
+    }
+
+    // Push new duty if it doesn't exist
     employer.duty.push(req.body);
-    const updatedEmployer = await employer.save();
-    res.json(updatedEmployer);
+    const savedEmployer = await employer.save();
+    res.status(201).json(savedEmployer);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
+// update Duty
+
+router.put("/update-duty/:id", async (req, res) => {
+  try {
+    const employer = await Employer.findById(req.params.id);
+    if (!employer) {
+      return res.status(404).json({ message: "Employer not found" });
+    }
+
+    const existingDuty = employer.duty.find((duty) => duty.date === req.body.date);
+
+    if (!existingDuty) {
+      return res.status(404).json({ message: "Duty not found" });
+    }
+
+    existingDuty.shift = req.body.shift;
+    existingDuty.OT = req.body.OT;
+
+    const savedEmployer = await employer.save();
+    res.status(202).json(savedEmployer);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete Duty
+
+router.delete("/delete-duty/:id", async (req, res) => {
+  try {
+    const employer = await Employer.findById(req.params.id);
+    if (!employer) {
+      return res.status(404).json({ message: "Employer not found" });
+    }
+
+    const existingDuty = employer.duty.find((duty) => duty.date === req.body.date);
+
+    if (!existingDuty) {
+      return res.status(404).json({ message: "Duty not found" });
+    }
+
+    employer.duty.pull(existingDuty);
+    const savedEmployer = await employer.save();
+    res.status(203).json({ date: existingDuty.date, message: "Duty deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+// get today all  employees
+
+router.get("/today-employees", async (req, res) => {
+
+  try {
+    const employers = await Employer.find();
+    const today = new Date();
+    const formattedDate = today.toISOString().slice(0, 10);
+    const employees = employers.flatMap((employer) => employer.duty.filter((duty) => duty.date === formattedDate));
+    res.json(employees);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+
+
+});
+
+
+
+
+
+
 
 
 
