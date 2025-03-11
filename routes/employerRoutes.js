@@ -67,26 +67,39 @@ router.delete("/:id", async (req, res) => {
 
 router.post("/add-duty/:id", async (req, res) => {
   try {
+    const { date, shift, ot } = req.body;
     const employer = await Employer.findById(req.params.id);
+
     if (!employer) {
-      return res.status(404).json({ message: "Employer not found" });
+      return res.status(404).json({ message: "❌ Employer not found" });
     }
 
-    const existingDuty = employer.duty.find((duty) => duty.date === req.body.date);
+    const formattedDate = formatDate(date);
+
+    // Duty Exists Check (Case-insensitive)
+    const existingDuty = employer.duty.find((duty) => duty.date.trim() === formattedDate);
 
     if (existingDuty) {
-      return res.status(400).json({ message: "Duty already exists" });
+      return res.status(400).json({ message: "⚠️ Duty already exists for this date" });
     }
 
-    // Push new duty if it doesn't exist
-    employer.duty.push(req.body);
+    // Push new duty
+    employer.duty.push({ date: formattedDate, shift: shift.toUpperCase(), OT: Number(ot) || 0 });
+
     const savedEmployer = await employer.save();
-    res.status(201).json(savedEmployer);
+    res.status(201).json({ success: true, data: savedEmployer });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("❌ Error in /add-duty/:id", error);
+    res.status(500).json({ message: "❌ Internal Server Error", error: error.message });
   }
 });
+
+// Date Format Function
+const formatDate = (dateString) => {
+  const [day, month, year] = dateString.split("-");
+  return `${day}-${month}-${year}`; // Ensure proper format
+};
 
 // update Duty
 
