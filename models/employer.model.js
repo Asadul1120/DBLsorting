@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const dutySchema = new mongoose.Schema({
-  date: { type: String, required: true, unique: true ,trim: true},
+  date: { type: String, required: true, trim: true }, // ✅ unique: true সরিয়ে দেওয়া হলো
   shift: { type: String, required: true, uppercase: true },
   OT: { type: Number, required: true, min: 0 },
 });
