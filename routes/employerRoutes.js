@@ -1,17 +1,67 @@
 const express = require("express");
 const router = express.Router();
 const Employer = require("../models/employer.model");
-const e = require("express");
 
-router.get("/", async (req, res) => {
+// Get Duty today
+
+router.get("/today", async (req, res) => {
   try {
     const employers = await Employer.find();
-    res.json(employers);
+    const today = new Date();
+    let year = today.getFullYear();
+    let month = today.getMonth() + 1;
+    let date = today.getDate();
+    if (month < 10) {
+      month = "0" + month;
+    }
+    if (date < 10) {
+      date = "0" + date;
+    }
+    const formattedToday = date + "-" + month + "-" + year;
+
+    const result = employers.filter((user) =>
+      user.duty.some((d) => d.date === formattedToday)
+    );
+
+    const data = result.map((user) => {
+      const duty = user.duty.find((d) => d.date === formattedToday);
+      return {
+        name: user.name,
+        ID: user.ID,
+        phone: user.phone,
+        line: user.line,
+        group: user.group,
+        date: duty.date,
+        shift: duty.shift,
+        OT: duty.OT,
+      };
+    });
+
+    if (data.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No duty found for today", date: formattedToday });
+    }
+
+    res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
+// Get All employers
+router.get("/", async (req, res) => {
+  try {
+    const employers = await Employer.find();
+    const data = employers.toSorted((a, b) => a.someField - b.someField); // Replace `someField` with a real field
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+// Add Employer
 router.post("/", async (req, res) => {
   try {
     const newEmployer = new Employer(req.body);
@@ -34,6 +84,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Update Employer
 router.put("/:id", async (req, res) => {
   try {
     const updatedEmployer = await Employer.findByIdAndUpdate(
@@ -50,6 +101,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// Delete Employer
 router.delete("/:id", async (req, res) => {
   try {
     const deletedEmployer = await Employer.findByIdAndDelete(req.params.id);
@@ -62,44 +114,31 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-
 // Add Duty
 
 router.post("/add-duty/:id", async (req, res) => {
   try {
-    const { date, shift, ot } = req.body;
     const employer = await Employer.findById(req.params.id);
-
     if (!employer) {
-      return res.status(404).json({ message: "❌ Employer not found" });
+      return res.status(404).json({ message: "Employer not found" });
     }
 
-    const formattedDate = formatDate(date);
-
-    // Duty Exists Check (Case-insensitive)
-    const existingDuty = employer.duty.find((duty) => duty.date.trim() === formattedDate);
+    const existingDuty = employer.duty.find(
+      (duty) => duty.date === req.body.date
+    );
 
     if (existingDuty) {
-      return res.status(400).json({ message: "⚠️ Duty already exists for this date" });
+      return res.status(400).json({ message: "Duty already exists" });
     }
 
-    // Push new duty
-    employer.duty.push({ date: formattedDate, shift: shift.toUpperCase(), OT: Number(ot) || 0 });
-
+    // Push new duty if it doesn't exist
+    employer.duty.push(req.body);
     const savedEmployer = await employer.save();
-    res.status(201).json({ success: true, data: savedEmployer });
-
+    res.status(201).json(savedEmployer);
   } catch (error) {
-    console.error("❌ Error in /add-duty/:id", error);
-    res.status(500).json({ message: "❌ Internal Server Error", error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
-
-// Date Format Function
-const formatDate = (dateString) => {
-  const [day, month, year] = dateString.split("-");
-  return `${day}-${month}-${year}`; // Ensure proper format
-};
 
 // update Duty
 
@@ -110,7 +149,9 @@ router.put("/update-duty/:id", async (req, res) => {
       return res.status(404).json({ message: "Employer not found" });
     }
 
-    const existingDuty = employer.duty.find((duty) => duty.date === req.body.date);
+    const existingDuty = employer.duty.find(
+      (duty) => duty.date === req.body.date
+    );
 
     if (!existingDuty) {
       return res.status(404).json({ message: "Duty not found" });
@@ -121,7 +162,6 @@ router.put("/update-duty/:id", async (req, res) => {
 
     const savedEmployer = await employer.save();
     res.status(202).json(savedEmployer);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -136,7 +176,9 @@ router.delete("/delete-duty/:id", async (req, res) => {
       return res.status(404).json({ message: "Employer not found" });
     }
 
-    const existingDuty = employer.duty.find((duty) => duty.date === req.body.date);
+    const existingDuty = employer.duty.find(
+      (duty) => duty.date === req.body.date
+    );
 
     if (!existingDuty) {
       return res.status(404).json({ message: "Duty not found" });
@@ -144,38 +186,14 @@ router.delete("/delete-duty/:id", async (req, res) => {
 
     employer.duty.pull(existingDuty);
     const savedEmployer = await employer.save();
-    res.status(203).json({ date: existingDuty.date, message: "Duty deleted successfully" });
-
+    res
+      .status(203)
+      .json({ date: existingDuty.date, message: "Duty deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 // get today all  employees
-
-router.get("/today-employees", async (req, res) => {
-
-  try {
-    const employers = await Employer.find();
-    const today = new Date();
-    const formattedDate = today.toISOString().slice(0, 10);
-    const employees = employers.flatMap((employer) => employer.duty.filter((duty) => duty.date === formattedDate));
-    res.json(employees);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-
-
-});
-
-
-
-
-
-
-
-
-
 
 module.exports = router;
