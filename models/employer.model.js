@@ -7,14 +7,15 @@ const dutySchema = new mongoose.Schema({
 });
 
 const employeeSchema = new mongoose.Schema({
-  name: { type: String, required: [true, "Name is required"], trim: true },
-  ID: { type: String, required: true, unique: true }, 
+  name: { type: String, required: true, trim: true },
+  ID: { type: String, required: true, unique: true },
   phone: { type: String },
   line: { type: String, required: true },
   group: { type: String, required: true },
-  duty: { type: [dutySchema], default: [], index: false },
+  duty: [dutySchema],
   createdAt: { type: Date, default: Date.now },
 });
+
 
 const Employee = mongoose.model("Employee", employeeSchema);
 
