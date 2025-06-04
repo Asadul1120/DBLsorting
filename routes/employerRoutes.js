@@ -65,6 +65,12 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const newEmployer = new Employer(req.body);
+
+    const existingEmployer = await Employer.findOne({ ID: req.body.ID });
+    if (existingEmployer) {
+      return res.status(400).json({ message: "Employer ID already exists" });
+    }
+
     const savedEmployer = await newEmployer.save();
     res.status(201).json(savedEmployer);
   } catch (error) {
@@ -72,6 +78,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Get Single Employer
 router.get("/:id", async (req, res) => {
   try {
     const employer = await Employer.findById(req.params.id);
