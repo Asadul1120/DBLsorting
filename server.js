@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 const employerRoutes = require("./routes/employerRoutes");
+const userRoutes = require("./routes/userRoutes");
+
 
 const app = express();
 
@@ -13,13 +15,13 @@ connectDB();
 
 // Middleware
 app.use(cors());
+app.use(express.json()); 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/employers", employerRoutes);
-
-
+app.use("/users", userRoutes);
 // Home route
 app.get("/", (req, res) => res.send("Welcome to the Product Inventory API"));
 

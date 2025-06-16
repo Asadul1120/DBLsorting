@@ -60,8 +60,9 @@ router.get("/", async (req, res) => {
   }
 });
 
+  
 
-// Add Employer
+// Create Employer
 router.post("/", async (req, res) => {
   try {
     const newEmployer = new Employer(req.body);
@@ -77,6 +78,7 @@ router.post("/", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Get Single Employer
 router.get("/:id", async (req, res) => {
