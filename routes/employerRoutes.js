@@ -7,17 +7,24 @@ const Employer = require("../models/employer.model");
 router.get("/today", async (req, res) => {
   try {
     const employers = await Employer.find();
+    
     const today = new Date();
-    let year = today.getFullYear();
-    let month = today.getMonth() + 1;
-    let date = today.getDate();
-    if (month < 10) {
-      month = "0" + month;
-    }
-    if (date < 10) {
-      date = "0" + date;
-    }
-    const formattedToday = date + "-" + month + "-" + year;
+const now = new Date();
+
+// সময় যদি 6টার আগে হয় (মানে এখনো আগের দিনের ডিউটি চলছে)
+if (now.getHours() < 6) {
+  // আগের দিন সেট করো
+  today.setDate(today.getDate() - 1);
+}
+
+let year = today.getFullYear();
+let month = today.getMonth() + 1;
+let date = today.getDate();
+
+if (month < 10) month = "0" + month;
+if (date < 10) date = "0" + date;
+
+const formattedToday = `${date}-${month}-${year}`;
 
     const result = employers.filter((user) =>
       user.duty.some((d) => d.date === formattedToday)
