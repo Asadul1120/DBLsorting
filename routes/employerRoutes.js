@@ -8,23 +8,25 @@ router.get("/today", async (req, res) => {
   try {
     const employers = await Employer.find();
     
+
 const now = new Date();
-const customToday = new Date(now);
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
 
-// যদি সময় 6:00am এর আগে হয়, তাহলে দিন হলো আগের দিন
-if (now.getHours() < 6 || (now.getHours() === 6 && now.getMinutes() === 0 && now.getSeconds() === 0)) {
-  customToday.setDate(customToday.getDate() - 1);
-}
+    // 🔁 যদি সময় 6:00am এর আগে হয় → আগের দিন
+    let customToday = new Date(now);
+    if (currentHour < 6 || (currentHour === 6 && currentMinute === 0)) {
+      customToday.setDate(customToday.getDate() - 1);
+    }
 
-// এখন format করো: DD-MM-YYYY
-let year = customToday.getFullYear();
-let month = customToday.getMonth() + 1;
-let date = customToday.getDate();
+    const year = customToday.getFullYear();
+    let month = customToday.getMonth() + 1;
+    let date = customToday.getDate();
 
-if (month < 10) month = "0" + month;
-if (date < 10) date = "0" + date;
+    if (month < 10) month = "0" + month;
+    if (date < 10) date = "0" + date;
 
-const formattedToday = `${date}-${month}-${year}`;
+    const formattedToday = `${date}-${month}-${year}`;
 
 
 
