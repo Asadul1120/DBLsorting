@@ -2,20 +2,16 @@ const express = require("express");
 const router = express.Router();
 const Employer = require("../models/employer.model");
 
-// Get Duty today
-
 router.get("/today", async (req, res) => {
   try {
     const employers = await Employer.find();
-    
 
-const now = new Date();
+    const now = new Date();
     const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
 
-    // 🔁 যদি সময় 6:00am এর আগে হয় → আগের দিন
+    // ✅ যদি সময় 6:00am এর আগে হয় → আগের দিন
     let customToday = new Date(now);
-    if (currentHour < 6 || (currentHour === 6 && currentMinute === 0)) {
+    if (currentHour < 6) {
       customToday.setDate(customToday.getDate() - 1);
     }
 
@@ -28,10 +24,6 @@ const now = new Date();
 
     const formattedToday = `${date}-${month}-${year}`;
 
-
-
-
-    
     const result = employers.filter((user) =>
       user.duty.some((d) => d.date === formattedToday)
     );
@@ -61,6 +53,9 @@ const now = new Date();
     res.status(500).json({ message: error.message });
   }
 });
+
+
+
 
 // Get All employers
 router.get("/", async (req, res) => {
