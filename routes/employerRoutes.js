@@ -54,9 +54,6 @@ router.get("/today", async (req, res) => {
   }
 });
 
-
-
-
 // Get All employers
 router.get("/", async (req, res) => {
   try {
@@ -67,8 +64,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-  
 
 // Create Employer
 router.post("/", async (req, res) => {
@@ -86,7 +81,6 @@ router.post("/", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 // Get Single Employer
 router.get("/:id", async (req, res) => {
