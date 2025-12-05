@@ -11,7 +11,7 @@ const employeeSchema = new mongoose.Schema({
   ID: { type: String, required: true, unique: true },
   phone: { type: String },
   line: { type: String, required: true },
-  group: { type: String, required: true },
+  Designation: { type: String, required: true },
   duty: [dutySchema],
   createdAt: { type: Date, default: Date.now },
 });

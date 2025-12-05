@@ -35,7 +35,7 @@ router.get("/today", async (req, res) => {
         ID: user.ID,
         phone: user.phone,
         line: user.line,
-        group: user.group,
+        Designation: user.Designation,
         date: duty.date,
         shift: duty.shift,
         OT: duty.OT,
@@ -197,6 +197,7 @@ router.delete("/delete-duty/:id", async (req, res) => {
 
     employer.duty.pull(existingDuty);
     const savedEmployer = await employer.save();
+
     res
       .status(203)
       .json({ date: existingDuty.date, message: "Duty deleted successfully" });
@@ -206,5 +207,6 @@ router.delete("/delete-duty/:id", async (req, res) => {
 });
 
 // get today all  employees
+
 
 module.exports = router;
